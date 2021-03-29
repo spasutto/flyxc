@@ -1,6 +1,6 @@
 import { customElement, html, internalProperty, LitElement, property, TemplateResult } from 'lit-element';
 
-import { getModalController } from './ion-controllers';
+import { modalController } from '@ionic/core/components';
 
 const WAYPOINT_FORMATS: { [id: string]: string } = {
   cup: 'See You (cup)',
@@ -83,7 +83,7 @@ export class WaypointModal extends LitElement {
   }
 
   private async dismiss(): Promise<void> {
-    const modal = await getModalController().getTop();
+    const modal = await modalController.getTop();
     await modal?.dismiss();
   }
 }

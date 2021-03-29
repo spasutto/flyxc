@@ -4,6 +4,8 @@ import '../ui/waypoint-modal';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
+import { modalController } from '@ionic/core/components';
+
 import { ClosingSector } from '../../gm/closing-sector';
 import { FaiSectors } from '../../gm/fai-sectors';
 import { getCurrentUrl, pushCurrentState } from '../../logic/history';
@@ -13,7 +15,6 @@ import { Measure, Point } from '../../logic/score/measure';
 import { CircuitType, Score } from '../../logic/score/scorer';
 import { setDistance, setRoute, setScore } from '../../redux/planner-slice';
 import { RootState, store } from '../../redux/store';
-import { getModalController } from '../ui/ion-controllers';
 import { PlannerElement } from './planner-element';
 
 // Route color by circuit type.
@@ -289,7 +290,7 @@ export class PathElement extends connect(store)(LitElement) {
           elevations,
         };
 
-        const modal = await getModalController().create({
+        const modal = await modalController.create({
           component: 'waypoint-modal',
           componentProps: { payload },
         });
@@ -334,8 +335,8 @@ export class PathElement extends connect(store)(LitElement) {
           path.push(first);
         }
       });
-      el.addEventListener('share', async () => {
-        const modal = await getModalController().create({
+      this.plannerElement.addEventListener('share', async () => {
+        const modal = await modalController.create({
           component: 'share-modal',
           componentProps: {
             link: getCurrentUrl().href,

@@ -3,13 +3,14 @@ import { getDistance } from 'geolib';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
+import { menuController, modalController, toastController } from '@ionic/core/components';
+
 import * as msg from '../../logic/messages';
 import { formatDistance, formatDurationMin, formatUnit, Units } from '../../logic/units';
 import { getLivePilots, LivePilot, setCenterOnLocation, setCurrentLiveId } from '../../redux/live-track-slice';
 import { setCurrentLocation } from '../../redux/location-slice';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
-import { getMenuController, getModalController, getToastController } from './ion-controllers';
 
 // Maximum number of pilots to list.
 const MAX_PILOTS = 40;
@@ -126,7 +127,7 @@ export class LiveModal extends connect(store)(LitElement) {
           },
         );
 
-        const toast = await getToastController().create({
+        const toast = await toastController.create({
           message: 'Keeps the map centered on your current location',
           duration: 3000,
           buttons: [
@@ -147,7 +148,7 @@ export class LiveModal extends connect(store)(LitElement) {
     msg.centerZoomMap.emit(pilot.position, { minZoom: 12 });
     store.dispatch(setCurrentLiveId(pilot.id));
     await this.dismiss();
-    await getMenuController().close();
+    await menuController.close();
   }
 
   // Returns the templates for all the pilots.
@@ -257,7 +258,7 @@ export class LiveModal extends connect(store)(LitElement) {
   }
 
   private async dismiss(): Promise<any> {
-    const modal = await getModalController().getTop();
+    const modal = await modalController.getTop();
     await modal?.dismiss();
   }
 }

@@ -8,6 +8,8 @@ import '../../node_modules/@ionic/core/css/padding.css';
 import './components/chart-element';
 import './components/loader-element';
 import './components/ui/main-menu';
+import './components/2d/map-element';
+import './components/3d/map3d-element';
 
 import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
@@ -17,6 +19,7 @@ import { connect } from 'pwa-helpers';
 import esriConfig from '@arcgis/core/config';
 import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
+import { ionicInit } from './components/ui/ionic';
 import { requestCurrentPosition } from './logic/geolocation';
 import {
   addUrlParamValues,
@@ -226,3 +229,5 @@ requestCurrentPosition(false);
 
 // Parent folder of the esri assets.
 esriConfig.assetsPath = '/';
+
+ionicInit();
