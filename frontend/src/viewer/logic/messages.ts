@@ -10,8 +10,15 @@ export const zoomMap = createEvents<number>();
 // Center the map on the passed position.
 export const centerMap = createEvents<LatLonZ>();
 
+export type ZoomRequest = {
+  // Whether to zoom in or out.
+  delta?: number;
+  // Minimal zoom level.
+  minZoom?: number;
+};
+
 // Center and zoom the map.
-export const centerZoomMap = createEvents<LatLonZ, number>();
+export const centerZoomMap = createEvents<LatLonZ, ZoomRequest>();
 
 // Emit the group id of the added tracks.
 export const trackGroupsAdded = createEvents<number[]>();

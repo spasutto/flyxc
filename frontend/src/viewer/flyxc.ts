@@ -83,7 +83,7 @@ export class FlyXc extends connect(store)(LitElement) {
                 @move=${(e: CustomEvent) => store.dispatch(setTimeSec(e.detail.timeSec))}
                 @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
                 @zoom=${(e: CustomEvent) =>
-                  msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), e.detail.deltaY)}
+                  msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), { delta: e.detail.deltaY })}
               ></chart-element>`
             : ''}
         </ion-content>

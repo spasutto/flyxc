@@ -187,7 +187,7 @@ export class Map3dElement extends connect(store)(LitElement) {
 
     this.subscriptions.push(
       msg.centerMap.subscribe((ll) => this.center(ll)),
-      msg.centerZoomMap.subscribe((ll, delta) => this.centerZoom(ll, delta)),
+      msg.centerZoomMap.subscribe((ll, request) => this.centerZoom(ll, request)),
       msg.trackGroupsAdded.subscribe(() => this.centerOnMarker(view.zoom)),
       msg.trackGroupsRemoved.subscribe(() => this.centerOnMarker(view.zoom)),
       msg.geoLocation.subscribe((latLon, userInitiated) => this.geolocation(latLon, userInitiated)),
@@ -288,9 +288,13 @@ export class Map3dElement extends connect(store)(LitElement) {
     }
   }
 
-  private centerZoom(ll: LatLonZ, delta: number): void {
+  private centerZoom(ll: LatLonZ, request: msg.ZoomRequest): void {
     if (this.view) {
-      this.center(ll, this.view.zoom + (delta < 0 ? 0.3 : -0.3));
+      if (request.delta != null) {
+        this.center(ll, this.view.zoom + (request.delta < 0 ? 0.3 : -0.3));
+      } else if (request.minZoom != null) {
+        this.center(ll, Math.max(this.view.zoom, request.minZoom));
+      }
     }
   }
 

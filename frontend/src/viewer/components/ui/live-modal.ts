@@ -144,7 +144,7 @@ export class LiveModal extends connect(store)(LitElement) {
   }
 
   private async handleFlyTo(pilot: LivePilot) {
-    msg.centerMap.emit(pilot.position);
+    msg.centerZoomMap.emit(pilot.position, { minZoom: 12 });
     store.dispatch(setCurrentLiveId(pilot.id));
     await this.dismiss();
     await getMenuController().close();

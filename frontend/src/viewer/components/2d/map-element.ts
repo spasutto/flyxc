@@ -191,9 +191,9 @@ export class MapElement extends connect(store)(LitElement) {
 
       this.subscriptions.push(
         msg.centerMap.subscribe(({ lat, lon }) => this.center(lat, lon)),
-        msg.centerZoomMap.subscribe(({ lat, lon }, delta) => {
+        msg.centerZoomMap.subscribe(({ lat, lon }, request) => {
           this.center(lat, lon);
-          this.zoom(delta);
+          this.zoom(request);
         }),
         msg.trackGroupsAdded.subscribe(() => this.zoomToTracks()),
         msg.trackGroupsRemoved.subscribe(() => this.zoomToTracks()),
@@ -355,10 +355,14 @@ export class MapElement extends connect(store)(LitElement) {
     this.map?.setCenter({ lat, lng: lon });
   }
 
-  private zoom(delta: number): void {
+  private zoom(request: msg.ZoomRequest): void {
     const map = this.map;
     if (map) {
-      map.setZoom(map.getZoom() + (delta < 0 ? 1 : -1));
+      if (request.delta != null) {
+        map.setZoom(map.getZoom() + (request.delta < 0 ? 1 : -1));
+      } else if (request.minZoom != null) {
+        map.setZoom(Math.max(request.minZoom, map.getZoom()));
+      }
     }
   }
 
