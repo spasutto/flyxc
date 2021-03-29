@@ -68,6 +68,11 @@ export class FlyXc extends connect(store)(LitElement) {
             component="devices-page"
             .beforeEnter=${async () => this.beforeDevices()}
           ></ion-route>
+          <ion-route
+            url="/admin.html"
+            component="admin-page"
+            .beforeEnter=${async () => this.beforeAdmin()}
+          ></ion-route>
           <ion-route url="/:any" .beforeEnter=${async () => this.handleCatchAll()} component="x-301"></ion-route>
         </ion-router>
         <ion-nav .animated=${false}></ion-nav>
@@ -109,24 +114,24 @@ export class FlyXc extends connect(store)(LitElement) {
   }
 
   private async before2d(): Promise<NavigationHookResult> {
-    console.log('before2d');
     await import('./components/2d/map-element');
     store.dispatch(setView3d(false));
     return true;
   }
 
   private async before3d(): Promise<NavigationHookResult> {
-    console.log('before3d');
     await import('./components/3d/map3d-element');
     store.dispatch(setView3d(true));
     return true;
   }
 
   private async beforeDevices(): Promise<NavigationHookResult> {
-    // TODO:
-    // - redirect devices.html in the routes
-    // - better integration (do not display tracks)
     await import('./components/devices/devices-page');
+    return true;
+  }
+
+  private async beforeAdmin(): Promise<NavigationHookResult> {
+    await import('./components/admin/admin-page');
     return true;
   }
 

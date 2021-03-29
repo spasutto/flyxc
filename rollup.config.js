@@ -97,7 +97,6 @@ export default [
   buildFrontEnd('frontend/src/viewer/workers/track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/viewer/workers/live-track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
-  buildFrontEnd('frontend/src/admin/admin.ts'),
 ];
 
 function buildFrontEnd(input, options = {}) {

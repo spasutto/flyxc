@@ -1,18 +1,9 @@
-import '../viewer/components/ui/google-btn';
+import '../ui/google-btn';
 
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { round } from 'flyxc/common/src/math';
 import { Keys } from 'flyxc/common/src/redis';
-import {
-  css,
-  CSSResult,
-  customElement,
-  html,
-  internalProperty,
-  LitElement,
-  property,
-  TemplateResult,
-} from 'lit-element';
+import { customElement, html, internalProperty, LitElement, property, TemplateResult } from 'lit-element';
 
 const REFRESH_MIN = 15;
 
@@ -29,11 +20,11 @@ ${
         count > 9 ? '+' : count
       }</text>`
     : `<circle cx="25" cy="7" r="4" fill="#f23c50" stroke="#000" />
-<path fill="none" stroke="#000" d="M29 7h2M19 7h2M27.83 4.17l1.41-1.41M20.76 11.24l1.41-1.41M25 3V1M25 13v-2M22.17 4.17l-1.41-1.41M29.24 11.24l-1.41-1.41"/>`
+<path fill="none" stroke="#000" d="M29 7h3M19 7h3M27.83 4.17l1.41-1.41M20.76 11.24l1.41-1.41M25 3V1M25 13v-2M22.17 4.17l-1.41-1.41M29.24 11.24l-1.41-1.41"/>`
 }  
 </svg>`;
 
-@customElement('admin-app')
+@customElement('admin-page')
 export class AdminPage extends LitElement {
   @internalProperty()
   private isLoading = true;
@@ -46,15 +37,6 @@ export class AdminPage extends LitElement {
 
   private timer: any;
   private lastFetch = 0;
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-    `;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -78,32 +60,33 @@ export class AdminPage extends LitElement {
     const parts: TemplateResult[] = [];
 
     if (this.isLoading) {
-      parts.push(html`
-        <div class="notification my-4 content">
-          <progress class="progress is-small is-primary" max="100">60%</progress>
-        </div>
-      `);
+      parts.push(html`<ion-progress-bar type="indeterminate"></ion-progress-bar>`);
     } else if (!this.connected) {
       parts.push(html`<google-btn override="admin" style="margin-top: 10px"></google-btn>`);
     } else if (this.values) {
-      parts.push(html`<dash-summary .values=${this.values} @sync=${this.fetch}></dash-summary>`);
+      parts.push(html`<dash-summary .values=${this.values}></dash-summary>`);
       for (const name of Object.values(trackerPropNames)) {
         parts.push(html`<dash-tracker .values=${this.values} name=${name}></dash-tracker>`);
       }
     }
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-
-      <section class="hero is-dark">
-        <div class="hero-body">
-          <div class="container">
-            <h1 class="title">FlyXC admin</h1>
-            <h2 class="subtitle">Dashboard</h2>
-          </div>
-        </div>
-      </section>
-
-      <div class="container">${parts}</div>`;
+    return html`<ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>FlyXC admin</ion-title>
+          <ion-title size="small">Dashboard</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>${parts}</ion-content>
+      <ion-footer>
+        <ion-toolbar color="light">
+          <ion-buttons slot="primary">
+            <ion-button @click=${this.fetch}>Refresh</ion-button>
+          </ion-buttons>
+          <ion-buttons slot="secondary">
+            <ion-button href="/logout">Logout</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-footer>`;
   }
 
   private fetch() {
@@ -117,6 +100,10 @@ export class AdminPage extends LitElement {
       }
     });
   }
+
+  createRenderRoot(): HTMLElement {
+    return this;
+  }
 }
 
 @customElement('dash-summary')
@@ -126,21 +113,6 @@ export class DashSummary extends LitElement {
 
   private link?: HTMLLinkElement;
   private timer: any;
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-    `;
-  }
 
   connectedCallback(): void {
     super.connectedCallback();
@@ -169,37 +141,51 @@ export class DashSummary extends LitElement {
     if (this.link) {
       this.link.href = `data:image/svg+xml;base64,${btoa(ICON_SVG(trackerH1))}`;
     }
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-      />
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>Summary</p>
-        </div>
-        <div class="panel-block">
-          <ul>
-            <li>Uploaded tracks: ${this.values[Keys.dashboardTotalTracks]}</li>
-            <li>
-              <a
-                href="https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc"
-                target="_blank"
-                >Trackers: ${this.values[Keys.dashboardTotalTrackers]}</a
-              >
-            </li>
-            <li>Trackers h24: ${this.values[Keys.trackerFullSize]}</li>
-            <li>Trackers h1: ${trackerH1}</li>
-            <li>Last refresh: ${relativeTime(this.values[Keys.trackerUpdateSec])}</li>
-          </ul>
-          <div class="buttons" style="margin-top: .5rem">
-            <button class="button is-success is-small" @click=${() => this.dispatchEvent(new CustomEvent('sync'))}>
-              <i class="la la-sync la-2x"></i> Refresh
-            </button>
-            <a class="button is-danger is-small" href="/logout"><i class="la la-power-off la-2x"></i> Sign out</a>
-          </div>
-        </div>
-      </div>`;
+    return html` <ion-card>
+      <ion-card-header>
+        <ion-card-title color="primary"><i class="las la-heartbeat"></i> Summary</ion-card-title>
+      </ion-card-header>
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Total trackers</p>
+          <h3>
+            <a
+              href="https://console.cloud.google.com/datastore/entities;kind=LiveTrack;ns=__$DEFAULT$__;sortCol=created;sortDir=DESCENDING/query/kind?project=fly-xc"
+              target="_blank"
+              >${this.values[Keys.dashboardTotalTrackers]}</a
+            >
+          </h3>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Trackers h24</p>
+          <h3>${this.values[Keys.trackerFullSize]}</h3>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Trackers h1</p>
+          <h3>${trackerH1}</h3>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Uploaded tracks</p>
+          <h3>${this.values[Keys.dashboardTotalTracks]}</h3>
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Last refresh</p>
+          <h3>${relativeTime(this.values[Keys.trackerUpdateSec])}</h3>
+        </ion-label>
+      </ion-item>
+    </ion-card>`;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 
@@ -210,21 +196,6 @@ export class DashTracker extends LitElement {
 
   @property()
   name = '';
-
-  static get styles(): CSSResult {
-    return css`
-      :host {
-        display: block;
-        font: 14px 'Nobile', verdana, sans-serif;
-      }
-      .panel-block {
-        display: block;
-      }
-      .panel {
-        font-size: 0.8rem !important;
-      }
-    `;
-  }
 
   render(): TemplateResult {
     const oldTimeSec = Date.now() / 1000 - 24 * 3 * 3600;
@@ -252,70 +223,114 @@ export class DashTracker extends LitElement {
         }
       }
     });
-    const oldErrors: string[] = [];
-    const errors: string[] = [];
+    const oldErrors: TemplateResult[] = [];
+    const errors: TemplateResult[] = [];
     this.values[Keys.trackerLogsErrors.replace('{name}', this.name)].forEach((entry: string) => {
       const m = entry.match(/\[(\d+)\] (.*)/i);
       if (m) {
         const timeSec = Number(m[1]);
         if (timeSec < oldTimeSec) {
-          oldErrors.push(`${relativeTime(Number(m[1]))} ${m[2]}`);
+          oldErrors.push(html`${relativeTime(Number(m[1]))} <ion-text color="medium"> ${m[2]}</ion-text>`);
         } else {
-          errors.push(`${relativeTime(Number(m[1]))} ${m[2]}`);
+          errors.push(html`${relativeTime(Number(m[1]))} <ion-text color="medium"> ${m[2]}</ion-text>`);
         }
       }
     });
 
-    return html`<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9/css/bulma.min.css" />
-      <div class="panel is-warning" style="margin-top: 1em;">
-        <div class="panel-heading">
-          <p>${this.name}</p>
-        </div>
-        <div class="panel-block">
-          <ul>
-            <li><a href=${GQL_URL.replace('{name}', this.name)} target="_blank">Trackers: ${number}</a></li>
-            <li>Fetches: ${fetchTimes.join(', ')}</li>
-            <li>Duration: ${durations.join(', ')}</li>
-            <li>Devices: ${numDevices.join(', ')}</li>
-          </ul>
-          <p><strong>Top errors</strong></p>
-          <ul>
-            ${topErrors.map(
-              ([id, error]) => html`<li><a href=${entityHref(id)} target="_blank">${id}</a> ${error}</li>`,
-            )}
-          </ul>
-          <p><strong>Device errors</strong></p>
-          <ul>
-            ${errorsById.map(
-              ([time, id, error]) =>
-                html`<li>${time} <a href=${entityHref(id)} target="_blank">${id}</a> ${error}</li>`,
-            )}
-          </ul>
-          ${oldErrorsById.length > 0
-            ? html`<details>
-                <summary>Old</summary>
-                <ul>
-                  ${oldErrorsById.map(
-                    ([time, id, error]) =>
-                      html`<li>${time} <a href=${entityHref(id)} target="_blank">${id}</a> ${error}</li>`,
-                  )}
-                </ul>
-              </details>`
-            : null}
-          <p><strong>Errors</strong></p>
-          <ul>
-            ${errors.map((error) => html`<li>${error}</li>`)}
-          </ul>
-          ${oldErrors.length > 0
-            ? html`<details>
-                <summary>Old</summary>
-                <ul>
-                  ${oldErrors.map((error) => html`<li>${error}</li>`)}
-                </ul>
-              </details>`
-            : null}
-        </div>
-      </div>`;
+    return html` <ion-card>
+      <ion-card-header>
+        <ion-card-title color="primary"><i class="las la-calculator"></i> ${this.name}</ion-card-title>
+      </ion-card-header>
+
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Trackers</p>
+          <h3><a href=${GQL_URL.replace('{name}', this.name)} target="_blank">${number}</a></h3>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Fetch times</p>
+          <h3>${fetchTimes.join(', ')}</h3>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Duration of fetches</p>
+          <h3>${durations.join(', ')}</h3>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Number of fetches</p>
+          <h3>${numDevices.join(', ')}</h3>
+        </ion-label>
+      </ion-item>
+
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Top Errors</p>
+          ${topErrors.length == 0
+            ? html`<h3>-</h3>`
+            : html`${topErrors.map(
+                ([id, error]) => html`<h3><a href=${entityHref(id)} target="_blank">${id}</a> ${error}</h3>`,
+              )}`}
+        </ion-label>
+      </ion-item>
+      <ion-item lines="full">
+        <ion-label style="margin: 0" class="ion-text-wrap">
+          <p>Device Errors</p>
+          ${errorsById.length == 0
+            ? html`<h3>-</h3>`
+            : html`${errorsById.map(
+                ([time, id, error]) =>
+                  html`<h3>
+                    ${time} <a href=${entityHref(id)} target="_blank">${id}</a>
+                    <ion-text color="medium">${error}</ion-text>
+                  </h3>`,
+              )}`}
+        </ion-label>
+      </ion-item>
+      ${oldErrorsById.length > 0
+        ? html`
+            <ion-item lines="full">
+              <ion-label style="margin: 0" class="ion-text-wrap">
+                <p>Old device Errors</p>
+                ${oldErrorsById.map(
+                  ([time, id, error]) =>
+                    html`<h3>
+                      ${time} <a href=${entityHref(id)} target="_blank">${id}</a>
+                      <ion-text color="medium"> ${error}</ion-text>
+                    </h3>`,
+                )}
+              </ion-label>
+            </ion-item>
+          `
+        : null}
+
+      <ion-item lines="full">
+        <ion-label style="margin: 0">
+          <p>Errors</p>
+          ${errors.length == 0 ? html`<h3>-</h3>` : html`${errors.map((error) => html`<h3>${error}</h3>`)}`}
+        </ion-label>
+      </ion-item>
+
+      ${oldErrors.length > 0
+        ? html`<ion-item lines="full">
+            <ion-label style="margin: 0">
+              <p>Old errors</p>
+              ${oldErrors.map((error) => html`<h3>${error}</h3>`)}
+            </ion-label>
+          </ion-item> `
+        : null}
+    </ion-card>`;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 
