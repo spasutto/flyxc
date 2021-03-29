@@ -5,9 +5,7 @@ const path = require('path');
 import yaml from 'js-yaml';
 
 describe('Test server configuration', () => {
-
   test('Check app.yaml', () => {
-
     const appDir = path.resolve(__dirname, '../..');
     const staticDir = 'frontend/static/';
 
@@ -15,19 +13,19 @@ describe('Test server configuration', () => {
 
     const files = [];
     const folders = [];
-    
+
     for (const handler of app.handlers) {
       if (handler.static_dir) {
         folders.push(handler.static_dir);
       } else {
         files.push({
-          url: handler.url, 
+          url: handler.url,
           file: handler.static_files,
         });
       }
-    }    
+    }
 
-    fs.readdirSync(path.resolve(appDir, staticDir), {withFileTypes: true}).forEach(entry => {
+    fs.readdirSync(path.resolve(appDir, staticDir), { withFileTypes: true }).forEach((entry) => {
       if (entry.isDirectory()) {
         const folder = path.join(staticDir, entry.name);
         expect(folders).toContain(folder);
@@ -47,8 +45,7 @@ describe('Test server configuration', () => {
         if (!found) {
           expect(file).toBe(null);
         }
-      }    
+      }
+    });
   });
-});
-
 });

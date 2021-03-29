@@ -9,6 +9,6 @@ const dstDir = path.resolve(__dirname, '../static/assets');
 console.log('## Install arcgis');
 // Creates or empties the destination folder.
 console.log('  - Empty dest folder');
-fs.emptyDirSync(dstDir);
+fs.rmdirSync(dstDir, { recursive: true });
 console.log('  - Copy files');
 fs.copySync(srcDir, dstDir);

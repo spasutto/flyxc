@@ -10,6 +10,6 @@ const dstDir = path.resolve(__dirname, '../static/ionic');
 console.log('## Install ionic');
 // Creates or empties the destination folder.
 console.log('  - Empty dest folder');
-fs.emptyDirSync(dstDir);
+fs.rmdirSync(dstDir, { recursive: true });
 console.log('  - Copy files');
 fs.copySync(srcDir, dstDir);
