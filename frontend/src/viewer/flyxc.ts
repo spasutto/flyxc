@@ -1,12 +1,10 @@
 import './styles/main.css';
 // https://ionicframework.com/docs/intro/cdn
-import '../../../node_modules/@ionic/core/css/core.css';
-import '../../../node_modules/@ionic/core/css/normalize.css';
-import '../../../node_modules/@ionic/core/css/structure.css';
-import '../../../node_modules/@ionic/core/css/typography.css';
-import '../../../node_modules/@ionic/core/css/padding.css';
-import './components/2d/map-element';
-import './components/3d/map3d-element';
+import '../../node_modules/@ionic/core/css/core.css';
+import '../../node_modules/@ionic/core/css/normalize.css';
+import '../../node_modules/@ionic/core/css/structure.css';
+import '../../node_modules/@ionic/core/css/typography.css';
+import '../../node_modules/@ionic/core/css/padding.css';
 import './components/chart-element';
 import './components/loader-element';
 import './components/ui/main-menu';
@@ -15,6 +13,8 @@ import { LatLonZ } from 'flyxc/common/src/runtime-track';
 import { customElement, html, internalProperty, LitElement, TemplateResult } from 'lit-element';
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
+
+import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
 import { requestCurrentPosition } from './logic/geolocation';
 import {
@@ -37,9 +37,6 @@ import { removeTracksByGroupIds, setDisplayLabels } from './redux/track-slice';
 export class FlyXc extends connect(store)(LitElement) {
   @internalProperty()
   private hasTrack = false;
-
-  @internalProperty()
-  private view3d = false;
 
   @internalProperty()
   private showLoader = false;
@@ -65,23 +62,20 @@ export class FlyXc extends connect(store)(LitElement) {
 
   stateChanged(state: RootState): void {
     this.hasTrack = sel.numTracks(state) > 0;
-    this.view3d = state.app.view3d;
     this.showLoader = state.track.fetching || state.app.loadingApi;
   }
 
   protected render(): TemplateResult {
     const clMap = classMap({ 'has-tracks': this.hasTrack });
     return html`
-      <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/line-awesome@1/dist/line-awesome/css/line-awesome.min.css"
-      />
       <ion-app>
-        <main-menu></main-menu>
         <ion-content id="main">
-          ${this.view3d
-            ? html`<map3d-element class=${clMap}></map3d-element>`
-            : html`<map-element class=${clMap}></map-element>`}
+          <ion-router .useHash=${false}>
+            <ion-route url="/" component="map-element" .beforeEnter=${async () => this.before2d()}></ion-route>
+            <ion-route url="/3d" component="map3d-element" .beforeEnter=${async () => this.before3d()}></ion-route>
+            <ion-route url="/:any" .beforeEnter=${async () => this.handleCatchAll()} component="x-301"></ion-route>
+          </ion-router>
+          <ion-nav .animated=${false} class=${clMap}></ion-nav>
           ${this.hasTrack
             ? html`<chart-element
                 class=${clMap}
@@ -92,6 +86,7 @@ export class FlyXc extends connect(store)(LitElement) {
               ></chart-element>`
             : ''}
         </ion-content>
+        <main-menu></main-menu>
       </ion-app>
       <loader-element .show=${this.showLoader}></loader-element>
     `;
@@ -101,7 +96,50 @@ export class FlyXc extends connect(store)(LitElement) {
     return this;
   }
 
-  // Returns the coordinates of the active track at the given time.
+  firstUpdated(): void {
+    // The ionic router would not trigger the beforeEnter on initial navigation.
+    // See https://github.com/ionic-team/ionic-framework/issues/22936
+    customElements.whenDefined('ion-router').then(() => {
+      // const router = this.renderRoot.querySelector('ion-router');
+      // const location = document.location;
+      // const target = `${location.pathname}${location.search}${location.hash}`;
+      //router?.push(target, 'root');
+    });
+  }
+
+  async handleCatchAll(): Promise<NavigationHookResult> {
+    const params = getSearchParams();
+    let href;
+    if (params.has(ParamNames.view3d)) {
+      href = '/3d';
+      await this.before3d();
+    } else {
+      href = '/';
+      await this.before2d();
+    }
+    params.delete(ParamNames.view3d);
+    const searchQuery = params.toString();
+    if (searchQuery.length > 0) {
+      href += '?' + searchQuery;
+    }
+    return { redirect: href };
+  }
+
+  private async before2d(): Promise<NavigationHookResult> {
+    console.log('before2d');
+    await import('./components/2d/map-element');
+    store.dispatch(setView3d(false));
+    return true;
+  }
+
+  private async before3d(): Promise<NavigationHookResult> {
+    console.log('before3d');
+    await import('./components/3d/map3d-element');
+    store.dispatch(setView3d(true));
+    return true;
+  }
+
+  // Returns the coordinates of the active track at the given timestamp.
   private coordinatesAt(timeSec: number): LatLonZ {
     return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonZ;
   }

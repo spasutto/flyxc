@@ -1,11 +1,11 @@
-import type Graphic from 'esri/Graphic';
-import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import { sampleAt } from 'flyxc/common/src/math';
 import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { Api } from '../../logic/arcgis';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 
@@ -16,8 +16,6 @@ export class Marker3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: RuntimeTrack;
 
-  @internalProperty()
-  api?: Api;
   @internalProperty()
   private layer?: GraphicsLayer;
   @internalProperty()
@@ -47,7 +45,7 @@ export class Marker3dElement extends connect(store)(LitElement) {
       {
         type: 'object',
         height: MARKER_HEIGHT,
-        resource: { href: '3d/angry/scene.gltf' },
+        resource: { href: '/models/angry/scene.gltf' },
         material: { color: 'red' },
         anchor: 'relative',
         anchorPosition: { x: 0, y: 0, z: -0.3 },
@@ -85,19 +83,18 @@ export class Marker3dElement extends connect(store)(LitElement) {
       this.active = id == sel.currentTrackId(state);
     }
     this.layer = state.arcgis.graphicsLayer;
-    this.api = state.arcgis.api;
     this.timeSec = state.app.timeSec;
     this.multiplier = state.arcgis.altMultiplier;
     this.displayLabels = state.track.displayLabels;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
-    if (this.api == null || this.layer == null) {
+    if (this.layer == null) {
       this.destroyMarker();
       return false;
     }
 
-    if (changedProps.has('api') || changedProps.has('track')) {
+    if (changedProps.has('track')) {
       this.destroyMarker();
       this.maybeCreateMarker();
     }
@@ -133,9 +130,9 @@ export class Marker3dElement extends connect(store)(LitElement) {
   }
 
   private maybeCreateMarker(): void {
-    if (this.api && this.layer && this.track) {
-      this.graphic = new this.api.Graphic();
-      this.txtGraphic = new this.api.Graphic({ symbol: this.txtSymbol as any });
+    if (this.layer && this.track) {
+      this.graphic = new Graphic();
+      this.txtGraphic = new Graphic({ symbol: this.txtSymbol as any });
       this.layer.addMany([this.graphic, this.txtGraphic]);
     }
   }

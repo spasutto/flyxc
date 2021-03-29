@@ -21,11 +21,18 @@ export function requestCurrentPosition(userInitiated: boolean): void {
       },
       (e: GeolocationPositionError) => {
         store.dispatch(setRequestingLocation(false));
-        if (userInitiated || (e.code == GeolocationPositionError.PERMISSION_DENIED && !hasTrackOrRoute())) {
+        const permissionError = e.code == GeolocationPositionError.PERMISSION_DENIED;
+        // Display an error when the position has been requested by the user or when there is not track.
+        if (permissionError && (userInitiated || !hasTrackOrRoute())) {
           showGeolocationDisabledAlert();
         }
       },
-      { enableHighAccuracy: true },
+      { 
+        // Only enable high accuracy for user requested positions.
+        enableHighAccuracy: userInitiated, 
+        timeout: 3 * 1000, 
+        maximumAge: 30 * 1000,
+       },
     );
   }
 }

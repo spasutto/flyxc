@@ -122,6 +122,7 @@ export class LiveModal extends connect(store)(LitElement) {
           {
             enableHighAccuracy: true,
             timeout: 60 * 1000,
+            maximumAge: 60 * 1000,
           },
         );
 

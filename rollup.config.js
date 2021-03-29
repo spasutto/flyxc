@@ -14,11 +14,18 @@ import postcss from 'rollup-plugin-postcss';
 import cssnano from 'cssnano';
 
 const prod = !process.env.ROLLUP_WATCH;
-const build =
+
+// Date of the build (YYYYMMDD).
+const dateString =
   String(new Date().getFullYear()) +
   String(new Date().getMonth() + 1).padStart(2, '0') +
   String(new Date().getDate()).padStart(2, '0');
+
 const nodeEnv = JSON.stringify(prod ? 'production' : 'development');
+
+// Sub-folder for JS chunks.
+// Add the date to prod to make it easy to delete old files.
+const jsChunksSubfolder = prod ? `chunks/${dateString}` : `chunks/dev`
 
 export default [
   {
@@ -34,7 +41,7 @@ export default [
       replace({
         values: {
           'process.env.NODE_ENV': nodeEnv,
-          '<%BUILD%>': build,
+          '<%BUILD%>': dateString,
         },
       }),
       json(),
@@ -63,7 +70,7 @@ export default [
       replace({
         values: {
           'process.env.NODE_ENV': nodeEnv,
-          '<%BUILD%>': build,
+          '<%BUILD%>': dateString,
         },
       }),
       json(),
@@ -79,7 +86,12 @@ export default [
     ],
     external: [...builtins, /@google-cloud/],
   },
-  buildFrontEnd('frontend/src/viewer/flyxc.ts', { visualizer: true }),
+  buildFrontEnd('frontend/src/viewer/flyxc.ts', {
+    visualizer: true,
+    output: {
+      chunkFileNames: `js/${jsChunksSubfolder}/[name]-[hash].js`,
+    },
+  }),
   buildFrontEnd('frontend/src/viewer/workers/track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/viewer/workers/live-track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
@@ -102,13 +114,14 @@ function buildFrontEnd(input, options = {}) {
       entryFileNames: options.isWorker ? 'js/workers/[name].js' : 'js/[name].js',
       format: 'esm',
       sourcemap: prod ? false : 'inline',
+      ...options.output,
     },
 
     plugins: [
       replace({
         values: {
           'process.env.NODE_ENV': nodeEnv,
-          '<%BUILD%>': build,
+          '<%BUILD%>': dateString,
         },
         delimiters: ['', ''],
       }),
@@ -133,7 +146,9 @@ function buildFrontEnd(input, options = {}) {
       resolve(),
       cjs(),
       typescript({
-        lib: options.isWorker ? ['ES2020', 'WebWorker'] : ['ES2020', 'DOM'],
+        lib: options.isWorker ? 
+          ['ES2020', 'WebWorker'] : 
+          ['ES2020', 'DOM'],
         sourceMap: !prod,
       }),
       prod && terser({ output: { comments: false } }),

@@ -1,11 +1,12 @@
-import type Graphic from 'esri/Graphic';
-import type GraphicsLayer from 'esri/layers/GraphicsLayer';
 import { findIndexes } from 'flyxc/common/src/math';
 import { LatLonZ, RuntimeTrack } from 'flyxc/common/src/runtime-track';
 import { customElement, internalProperty, LitElement, property, PropertyValues } from 'lit-element';
 import { connect } from 'pwa-helpers';
 
-import { Api } from '../../logic/arcgis';
+import Color from '@arcgis/core/Color';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 
@@ -16,8 +17,6 @@ export class Line3dElement extends connect(store)(LitElement) {
   @property({ attribute: false })
   track?: RuntimeTrack;
 
-  @internalProperty()
-  api?: Api;
   @internalProperty()
   private layer?: GraphicsLayer;
   @internalProperty()
@@ -70,18 +69,17 @@ export class Line3dElement extends connect(store)(LitElement) {
     }
     this.layer = state.arcgis.graphicsLayer;
     this.gndLayer = state.arcgis.gndGraphicsLayer;
-    this.api = state.arcgis.api;
     this.timeSec = state.app.timeSec;
     this.multiplier = state.arcgis.altMultiplier;
   }
 
   shouldUpdate(changedProps: PropertyValues): boolean {
-    if (this.api == null || this.layer == null || this.gndLayer == null) {
+    if (this.layer == null || this.gndLayer == null) {
       this.destroyLines();
       return false;
     }
 
-    if (changedProps.has('api') || changedProps.has('track') || changedProps.has('multiplier')) {
+    if (changedProps.has('track') || changedProps.has('multiplier')) {
       this.destroyLines();
       this.maybeCreateLines();
     }
@@ -104,7 +102,7 @@ export class Line3dElement extends connect(store)(LitElement) {
       this.gndGraphic?.set('geometry', this.line);
       this.gndGraphic?.set('attributes', { trackId: this.track.id });
 
-      const color = new this.api.Color(this.color);
+      const color = new Color(this.color);
       color.a = this.opacity;
       const rgba = color.toRgba();
       this.symbol.symbolLayers[0].material.color = rgba;
@@ -115,11 +113,11 @@ export class Line3dElement extends connect(store)(LitElement) {
   }
 
   private maybeCreateLines(): void {
-    if (this.api && this.layer && this.gndLayer && this.track) {
-      this.graphic = new this.api.Graphic();
+    if (this.layer && this.gndLayer && this.track) {
+      this.graphic = new Graphic();
       this.layer.add(this.graphic);
       this.symbol.symbolLayers[0].material.color = [50, 50, 50, 0.6];
-      this.gndGraphic = new this.api.Graphic({ symbol: this.symbol as any });
+      this.gndGraphic = new Graphic({ symbol: this.symbol as any });
       this.gndLayer.add(this.gndGraphic);
       this.path3d.length = 0;
       const track = this.track;

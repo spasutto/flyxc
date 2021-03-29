@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const grant = require('grant').express();
+const path = require('path');
+
 import compression from 'compression';
 import redisStore from 'connect-redis';
 import express, { Request, Response } from 'express';
@@ -113,7 +115,11 @@ app.get('/logout', async (req: Request, res: Response) => {
   res.redirect('/');
 });
 
+
 const port = process.env.PORT || 8080;
 app
   .use(express.static('frontend/static', { lastModified: false }))
+  .get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../frontend/static', 'index.html'));
+  })
   .listen(port, () => console.info(`Started server on port ${port}.`));

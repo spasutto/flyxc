@@ -4,7 +4,13 @@ import { customElement, internalProperty, LitElement, PropertyValues } from 'lit
 import { UnsubscribeHandle } from 'micro-typed-events';
 import { connect } from 'pwa-helpers';
 
-import { Api } from '../../logic/arcgis';
+import Color from '@arcgis/core/Color';
+import Point from '@arcgis/core/geometry/Point';
+import Graphic from '@arcgis/core/Graphic';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import ElevationSampler from '@arcgis/core/layers/support/ElevationSampler';
+import SceneView from '@arcgis/core/views/SceneView';
+
 import { popupContent } from '../../logic/live-track-popup';
 import * as msg from '../../logic/messages';
 import { formatDurationMin, Units } from '../../logic/units';
@@ -12,12 +18,6 @@ import { liveTrackSelectors, setCurrentLiveId } from '../../redux/live-track-sli
 import * as sel from '../../redux/selectors';
 import { RootState, store } from '../../redux/store';
 import { getUniqueColor } from '../../styles/track';
-
-import type GraphicsLayer from 'esri/layers/GraphicsLayer';
-import type Graphic from 'esri/Graphic';
-import type SceneView from 'esri/views/SceneView';
-import type ElevationSampler from 'esri/layers/support/ElevationSampler';
-import type Point from 'esri/geometry/Point';
 
 // A track is considered recent if ended less than timeout ago.
 const RECENT_TIMEOUT_MIN = 2 * 60;
@@ -31,8 +31,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   private layer?: GraphicsLayer;
   @internalProperty()
   private gndLayer?: GraphicsLayer;
-  @internalProperty()
-  private api?: Api;
   @internalProperty()
   private multiplier = 1;
   @internalProperty()
@@ -80,7 +78,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       {
         type: 'object',
         width: MSG_MARKER_HEIGHT,
-        resource: { href: '3d/msg/scene.gltf' },
+        resource: { href: '/models/msg/scene.gltf' },
         material: { color: [50, 50, 50, 0.6] },
         anchor: 'relative',
         anchorPosition: { x: 0.1, y: -0.45, z: 0 },
@@ -95,7 +93,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       {
         type: 'object',
         width: MSG_MARKER_HEIGHT,
-        resource: { href: '3d/santa.glb' },
+        resource: { href: '/models/santa.glb' },
         material: { color: [50, 50, 50, 0.6] },
         anchor: 'relative',
         tilt: 0,
@@ -144,7 +142,6 @@ export class Tracking3DElement extends connect(store)(LitElement) {
     this.geojson = state.liveTrack.geojson;
     this.layer = state.arcgis.graphicsLayer;
     this.gndLayer = state.arcgis.gndGraphicsLayer;
-    this.api = state.arcgis.api;
     this.multiplier = state.arcgis.altMultiplier;
     this.units = state.units;
     this.sampler = state.arcgis.elevationSampler;
@@ -153,7 +150,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (this.layer && this.api && this.gndLayer) {
+    if (this.layer && this.gndLayer) {
       this.updateTracks();
       this.updateMarkers();
     }
@@ -162,7 +159,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
   // Updates the live tracks from the geojson.
   private updateTracks() {
-    if (!this.api || !this.layer || !this.gndLayer) {
+    if (!this.layer || !this.gndLayer) {
       return;
     }
 
@@ -183,15 +180,15 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       const hasRecentStyle = ageMin < RECENT_TIMEOUT_MIN && this.numTracks == 0;
       const hasSelectedStyle = id === this.currentId;
 
-      const graphic = new this.api.Graphic();
-      const shadowGraphic = new this.api.Graphic();
+      const graphic = new Graphic();
+      const shadowGraphic = new Graphic();
       const path = feature.geometry.coordinates.map(([lon, lat, z]: number[]) => [lon, lat, z * this.multiplier]);
 
       this.line.paths[0] = path;
       graphic.set('geometry', this.line);
       shadowGraphic.set('geometry', this.line);
 
-      const color = new this.api.Color(getUniqueColor(Math.round(id / 1000)));
+      const color = new Color(getUniqueColor(Math.round(id / 1000)));
       color.a = isEmergency || hasRecentStyle || hasSelectedStyle ? 1 : 0.8;
       const rgba = color.toRgba();
       this.trackSymbol.symbolLayers[0].material.color = rgba;
@@ -214,7 +211,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
 
   // Updates markers from the geojson.
   private updateMarkers() {
-    if (!this.api || !this.layer || !this.gndLayer) {
+    if (!this.layer || !this.gndLayer) {
       return;
     }
 
@@ -248,7 +245,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         symbol = this.msgSymbol;
       } else if (heading != null) {
         // Pilot marker.
-        const color = new this.api.Color(getUniqueColor(Math.round(id / 1000)));
+        const color = new Color(getUniqueColor(Math.round(id / 1000)));
         color.a = isActive || isRecentTrack ? 1 : 0.7;
         const rgba = color.toRgba();
         this.santaSymbol.symbolLayers[0].material.color = rgba;
@@ -264,9 +261,9 @@ export class Tracking3DElement extends connect(store)(LitElement) {
         continue;
       }
 
-      const graphic = new this.api.Graphic();
+      const graphic = new Graphic();
       graphic.set('symbol', symbol);
-      let point = new this.api.Point({
+      let point = new Point({
         latitude: feature.geometry.coordinates[1],
         longitude: feature.geometry.coordinates[0],
         z: 0,
@@ -281,7 +278,7 @@ export class Tracking3DElement extends connect(store)(LitElement) {
       markers.push(graphic);
 
       if (label) {
-        const graphic = new this.api.Graphic();
+        const graphic = new Graphic();
         point = point.clone();
         point.z += MSG_MARKER_HEIGHT;
         graphic.set('geometry', point);

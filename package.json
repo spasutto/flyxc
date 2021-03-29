@@ -12,8 +12,7 @@
     "emulator:start": "gcloud beta emulators datastore start --data-dir=ds",
     "emulator:env": "gcloud beta emulators datastore env-init --data-dir=ds",
     "emulator:unenv": "gcloud beta emulators datastore env-unset --data-dir=ds",
-    "test": "jest",
-    "postinstall": "node scripts/copy_ionic.js"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
