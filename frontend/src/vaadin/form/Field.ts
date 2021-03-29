@@ -92,22 +92,15 @@ export class SelectedFieldStrategy extends GenericFieldStrategy {
 }
 
 export function getDefaultFieldStrategy(elm: any): FieldStrategy {
-  switch (elm.localName) {
-    case 'vaadin-checkbox':
-    case 'vaadin-radio-button':
-      return new CheckedFieldStrategy(elm);
-    case 'vaadin-combo-box':
-      return new ComboBoxFieldStrategy(elm);
-    case 'vaadin-list-box':
-      return new SelectedFieldStrategy(elm);
-    case 'vaadin-rich-text-editor':
-      return new GenericFieldStrategy(elm);
-    case 'input':
-      if (/^(checkbox|radio)$/.test(elm.type)) {
-        return new CheckedFieldStrategy(elm);
-      }
+  let strategy = GenericFieldStrategy;
+
+  if (elm.localName === 'input' && /^(checkbox|radio)$/.test(elm.type)) {
+    strategy = CheckedFieldStrategy;
+  } else if (elm.constructor.strategy) {
+    strategy = elm.constructor.strategy;
   }
-  return elm.constructor.version ? new VaadinFieldStrategy(elm) : new GenericFieldStrategy(elm);
+
+  return new strategy(elm);
 }
 
 /**

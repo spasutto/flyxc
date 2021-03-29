@@ -36,12 +36,6 @@ import { removeTracksByGroupIds, setDisplayLabels } from './redux/track-slice';
 
 @customElement('fly-xc')
 export class FlyXc extends connect(store)(LitElement) {
-  @internalProperty()
-  private hasTrack = false;
-
-  @internalProperty()
-  private showLoader = false;
-
   constructor() {
     super();
     // Add or remove tracks when the url changes.
@@ -61,35 +55,23 @@ export class FlyXc extends connect(store)(LitElement) {
     });
   }
 
-  stateChanged(state: RootState): void {
-    this.hasTrack = sel.numTracks(state) > 0;
-    this.showLoader = state.track.fetching || state.app.loadingApi;
-  }
-
   protected render(): TemplateResult {
-    const clMap = classMap({ 'has-tracks': this.hasTrack });
     return html`
       <ion-app>
-        <ion-content id="main">
-          <ion-router .useHash=${false}>
+        <ion-router .useHash=${false}>
+          <ion-route component="maps-element">
             <ion-route url="/" component="map-element" .beforeEnter=${async () => this.before2d()}></ion-route>
             <ion-route url="/3d" component="map3d-element" .beforeEnter=${async () => this.before3d()}></ion-route>
-            <ion-route url="/:any" .beforeEnter=${async () => this.handleCatchAll()} component="x-301"></ion-route>
-          </ion-router>
-          <ion-nav .animated=${false} class=${clMap}></ion-nav>
-          ${this.hasTrack
-            ? html`<chart-element
-                class=${clMap}
-                @move=${(e: CustomEvent) => store.dispatch(setTimeSec(e.detail.timeSec))}
-                @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
-                @zoom=${(e: CustomEvent) =>
-                  msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), { delta: e.detail.deltaY })}
-              ></chart-element>`
-            : ''}
-        </ion-content>
-        <main-menu></main-menu>
+          </ion-route>
+          <ion-route
+            url="/devices.html"
+            component="devices-page"
+            .beforeEnter=${async () => this.beforeDevices()}
+          ></ion-route>
+          <ion-route url="/:any" .beforeEnter=${async () => this.handleCatchAll()} component="x-301"></ion-route>
+        </ion-router>
+        <ion-nav .animated=${false}></ion-nav>
       </ion-app>
-      <loader-element .show=${this.showLoader}></loader-element>
     `;
   }
 
@@ -140,9 +122,12 @@ export class FlyXc extends connect(store)(LitElement) {
     return true;
   }
 
-  // Returns the coordinates of the active track at the given timestamp.
-  private coordinatesAt(timeSec: number): LatLonZ {
-    return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonZ;
+  private async beforeDevices(): Promise<NavigationHookResult> {
+    // TODO:
+    // - redirect devices.html in the routes
+    // - better integration (do not display tracks)
+    await import('./components/devices/devices-page');
+    return true;
   }
 
   private handlePopState(): void {
@@ -187,6 +172,48 @@ export class FlyXc extends connect(store)(LitElement) {
       pushCurrentState();
       addUrlParamValues(ParamNames.groupId, ids);
     }
+  }
+}
+
+@customElement('maps-element')
+export class MapsElement extends connect(store)(LitElement) {
+  @internalProperty()
+  private hasTrack = false;
+
+  @internalProperty()
+  private showLoader = false;
+
+  stateChanged(state: RootState): void {
+    this.hasTrack = sel.numTracks(state) > 0;
+    this.showLoader = state.track.fetching || state.app.loadingApi;
+  }
+
+  render(): TemplateResult {
+    const clMap = classMap({ 'has-tracks': this.hasTrack });
+
+    return html`<ion-content id="main">
+        <ion-nav .animated=${false} class=${clMap}></ion-nav>
+        ${this.hasTrack
+          ? html`<chart-element
+              class=${clMap}
+              @move=${(e: CustomEvent) => store.dispatch(setTimeSec(e.detail.timeSec))}
+              @pin=${(e: CustomEvent) => msg.centerMap.emit(this.coordinatesAt(e.detail.timeSec))}
+              @zoom=${(e: CustomEvent) =>
+                msg.centerZoomMap.emit(this.coordinatesAt(e.detail.timeSec), { delta: e.detail.deltaY })}
+            ></chart-element>`
+          : ''}
+      </ion-content>
+      <main-menu></main-menu>
+      <loader-element .show=${this.showLoader}></loader-element>`;
+  }
+
+  // Returns the coordinates of the active track at the given timestamp.
+  private coordinatesAt(timeSec: number): LatLonZ {
+    return sel.getTrackLatLonAlt(store.getState())(timeSec) as LatLonZ;
+  }
+
+  createRenderRoot(): HTMLElement {
+    return this;
   }
 }
 

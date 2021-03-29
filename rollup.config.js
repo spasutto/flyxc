@@ -25,7 +25,7 @@ const nodeEnv = JSON.stringify(prod ? 'production' : 'development');
 
 // Sub-folder for JS chunks.
 // Add the date to prod to make it easy to delete old files.
-const jsChunksSubfolder = prod ? `chunks/${dateString}` : `chunks/dev`
+const jsChunksSubfolder = prod ? `chunks/${dateString}` : `chunks/dev`;
 
 export default [
   {
@@ -43,6 +43,7 @@ export default [
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': dateString,
         },
+        preventAssignment: true,
       }),
       json(),
       resolve({
@@ -72,6 +73,7 @@ export default [
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': dateString,
         },
+        preventAssignment: true,
       }),
       json(),
       resolve({
@@ -95,7 +97,6 @@ export default [
   buildFrontEnd('frontend/src/viewer/workers/track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/viewer/workers/live-track.ts', { isWorker: true }),
   buildFrontEnd('frontend/src/archives/archives.ts'),
-  buildFrontEnd('frontend/src/tracking/devices.ts'),
   buildFrontEnd('frontend/src/admin/admin.ts'),
 ];
 
@@ -123,6 +124,7 @@ function buildFrontEnd(input, options = {}) {
           'process.env.NODE_ENV': nodeEnv,
           '<%BUILD%>': dateString,
         },
+        preventAssignment: true,
         delimiters: ['', ''],
       }),
       prod &&
@@ -146,9 +148,7 @@ function buildFrontEnd(input, options = {}) {
       resolve(),
       cjs(),
       typescript({
-        lib: options.isWorker ? 
-          ['ES2020', 'WebWorker'] : 
-          ['ES2020', 'DOM'],
+        lib: options.isWorker ? ['ES2020', 'WebWorker'] : ['ES2020', 'DOM'],
         sourceMap: !prod,
       }),
       prod && terser({ output: { comments: false } }),

@@ -1,4 +1,4 @@
-import '../google-btn';
+import '../viewer/components/ui/google-btn';
 
 import { trackerPropNames } from 'flyxc/common/src/live-track';
 import { round } from 'flyxc/common/src/math';
@@ -233,7 +233,7 @@ export class DashTracker extends LitElement {
     const durations = this.values[Keys.trackerLogsDuration.replace('{name}', this.name)];
     const numDevices = this.values[Keys.trackerLogsSize.replace('{name}', this.name)];
     const topErrors: [string, string][] = [];
-    (this.values[Keys.dashboardTopErrors.replace('{name}', this.name)] ?? "").split(',').forEach((entry: string) => {
+    (this.values[Keys.dashboardTopErrors.replace('{name}', this.name)] ?? '').split(',').forEach((entry: string) => {
       const m = entry.match(/id=(\d+) errors=(\d+)/i);
       if (m) {
         topErrors.push([m[1], m[2]]);
