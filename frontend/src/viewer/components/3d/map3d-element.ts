@@ -253,7 +253,7 @@ export class Map3dElement extends connect(store)(LitElement) {
       const state = store.getState();
       const minTimeSec = sel.minTimeSec(state);
       const maxTimeSec = sel.maxTimeSec(state);
-      const delta = Math.round((direction * (maxTimeSec - minTimeSec)) * 3) + 1;
+      const delta = Math.round(direction * (maxTimeSec - minTimeSec) * 3) + 1;
       const timeSec = Math.max(Math.min(state.app.timeSec + delta, maxTimeSec), minTimeSec);
       store.dispatch(setTimeSec(timeSec));
       e.stopPropagation();

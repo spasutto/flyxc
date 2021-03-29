@@ -27,12 +27,12 @@ export function requestCurrentPosition(userInitiated: boolean): void {
           showGeolocationDisabledAlert();
         }
       },
-      { 
+      {
         // Only enable high accuracy for user requested positions.
-        enableHighAccuracy: userInitiated, 
-        timeout: 3 * 1000, 
+        enableHighAccuracy: userInitiated,
+        timeout: 3 * 1000,
         maximumAge: 30 * 1000,
-       },
+      },
     );
   }
 }
