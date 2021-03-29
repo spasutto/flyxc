@@ -3,7 +3,6 @@ import { LitElement, property } from 'lit-element';
 import { html as litHtml, render as litRender, TemplateResult } from 'lit-html';
 
 export abstract class WMTSOverlayElement extends LitElement {
-  // Actual type: google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 

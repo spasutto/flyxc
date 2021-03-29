@@ -34,7 +34,6 @@ const CIRCUIT_SHORT_NAME = {
 
 @customElement('path-element')
 export class PathElement extends connect(store)(LitElement) {
-  // Actual type is google.maps.Map.
   @property({ attribute: false })
   map!: google.maps.Map;
 
