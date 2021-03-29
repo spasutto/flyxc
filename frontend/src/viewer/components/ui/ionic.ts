@@ -7,6 +7,9 @@ import { IonBackdrop } from '@ionic/core/components/ion-backdrop';
 import { IonBadge } from '@ionic/core/components/ion-badge';
 import { IonButton } from '@ionic/core/components/ion-button';
 import { IonButtons } from '@ionic/core/components/ion-buttons';
+import { IonCard } from '@ionic/core/components/ion-card';
+import { IonCardHeader } from '@ionic/core/components/ion-card-header';
+import { IonCardTitle } from '@ionic/core/components/ion-card-title';
 import { IonContent } from '@ionic/core/components/ion-content';
 import { IonFabButton } from '@ionic/core/components/ion-fab-button';
 import { IonFooter } from '@ionic/core/components/ion-footer';
@@ -23,6 +26,7 @@ import { IonModal } from '@ionic/core/components/ion-modal';
 import { IonNav } from '@ionic/core/components/ion-nav';
 import { IonNote } from '@ionic/core/components/ion-note';
 import { IonPopover } from '@ionic/core/components/ion-popover';
+import { IonProgressBar } from '@ionic/core/components/ion-progress-bar';
 import { IonRange } from '@ionic/core/components/ion-range';
 import { IonRoute } from '@ionic/core/components/ion-route';
 import { IonRouter } from '@ionic/core/components/ion-router';
@@ -45,6 +49,9 @@ export function ionicInit(): void {
     ['ion-badge', IonBadge],
     ['ion-button', IonButton],
     ['ion-buttons', IonButtons],
+    ['ion-card', IonCard],
+    ['ion-card-header', IonCardHeader],
+    ['ion-card-title', IonCardTitle],
     ['ion-content', IonContent],
     ['ion-fab-button', IonFabButton],
     ['ion-footer', IonFooter],
@@ -61,6 +68,7 @@ export function ionicInit(): void {
     ['ion-nav', IonNav],
     ['ion-note', IonNote],
     ['ion-popover', IonPopover],
+    ['ion-progress-bar', IonProgressBar],
     ['ion-range', IonRange],
     ['ion-route', IonRoute],
     ['ion-router', IonRouter],

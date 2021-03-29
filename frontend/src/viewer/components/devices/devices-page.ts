@@ -6,10 +6,9 @@ import { TrackerIds } from 'flyxc/common/src/live-track';
 import { AccountFormModel } from 'flyxc/common/src/models';
 import { customElement, html, internalProperty, LitElement, queryAll, TemplateResult } from 'lit-element';
 
+import { alertController } from '@ionic/core/components';
 import { Binder } from '@vaadin/form/Binder';
 import { field } from '@vaadin/form/Field';
-
-import { getAlertController } from '../ui/ion-controllers';
 
 @customElement('devices-page')
 export class DevicesPage extends LitElement {
@@ -256,7 +255,7 @@ export class DevicesPage extends LitElement {
     console.log(error);
 
     if (error) {
-      const alert = await getAlertController().create({
+      const alert = await alertController.create({
         header: 'Settings error',
         message: `<p>An error has occurred:</p><p>${error}</p>`,
         buttons: [
@@ -269,7 +268,7 @@ export class DevicesPage extends LitElement {
       await alert.present();
       this.isSubmitting = false;
     } else {
-      const alert = await getAlertController().create({
+      const alert = await alertController.create({
         header: 'Settings updated',
         message: `<p>Your settings have been updated.</p>`,
         buttons: [
