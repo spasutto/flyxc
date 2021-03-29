@@ -115,7 +115,6 @@ app.get('/logout', async (req: Request, res: Response) => {
   res.redirect('/');
 });
 
-
 const port = process.env.PORT || 8080;
 app
   .use(express.static('frontend/static', { lastModified: false }))
