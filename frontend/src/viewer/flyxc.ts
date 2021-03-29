@@ -14,6 +14,7 @@ import { customElement, html, internalProperty, LitElement, TemplateResult } fro
 import { classMap } from 'lit-html/directives/class-map.js';
 import { connect } from 'pwa-helpers';
 
+import esriConfig from '@arcgis/core/config';
 import { NavigationHookResult } from '@ionic/core/dist/types/components/route/route-interface';
 
 import { requestCurrentPosition } from './logic/geolocation';
@@ -190,3 +191,6 @@ export class FlyXc extends connect(store)(LitElement) {
 }
 
 requestCurrentPosition(false);
+
+// Parent folder of the esri assets.
+esriConfig.assetsPath = '/';

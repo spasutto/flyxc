@@ -11,8 +11,8 @@ automatic_scaling:
   min_pending_latency: 400ms
 
 handlers:
-- url: /assets
-  static_dir: frontend/static/assets
+- url: /esri
+  static_dir: frontend/static/esri
   secure: always
   redirect_http_response_code: 301  
 
